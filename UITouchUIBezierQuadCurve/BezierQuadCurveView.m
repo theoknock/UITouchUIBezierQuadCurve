@@ -166,8 +166,8 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
     UITouch * touch = (UITouch *)touches.anyObject;
-    CGPoint circle_location = CGPointMake([touch locationInView:touch.view].x, [touch locationInView:touch.view].y);
-
+    CGPoint circle_location = CGPointMake(fmaxf(CGRectGetMinX(touch.view.frame), fminf(CGRectGetMaxX(touch.view.frame), [touch locationInView:touch.view].x)), [touch locationInView:touch.view].y);
+    
     (change == 0) ?
     ^{ start_point = circle_location; }() :
     (change == 1) ?
