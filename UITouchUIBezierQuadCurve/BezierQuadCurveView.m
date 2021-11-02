@@ -173,12 +173,8 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
     // To-Do: Create a transform that positions the view above the buttons (z-index-wise)
     
     change = 0;
-    
-    
-    
     [self displayBezierQuadCurve];
-    
-    
+    [self displayButtons];
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
@@ -194,6 +190,7 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
     ^{ intermediate_point = circle_location; }();
     
     [self displayBezierQuadCurve];
+    [self displayButtons];
 }
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
@@ -213,8 +210,8 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
     }
 }
 
-- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-        [buttons enumerateObjectsUsingBlock:^(UIButton * _Nonnull button, NSUInteger idx, BOOL * _Nonnull stop) {
+- (void)displayButtons {
+    [buttons enumerateObjectsUsingBlock:^(UIButton * _Nonnull button, NSUInteger idx, BOOL * _Nonnull stop) {
         CGFloat t = (CGFloat)(fabs((end_point.x - start_point.x) / 5.0) * idx);
         
         [button setCenter:^ CGPoint (CGFloat time, NSUInteger divisor) {
@@ -224,8 +221,12 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
             
             return CGPointMake(x, y);
         }(t, idx)];
-
+        
     }];
+}
+
+- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [self displayButtons];
 }
 
 - (void)point:(CGPoint)point layer:(CAShapeLayer *)layer color:(UIColor *)color position:(CGFloat)position {
