@@ -252,8 +252,9 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
     [layer setPath:nil];
     UIBezierPath * path = [UIBezierPath bezierPath];
     CGPoint new_point = BezierQuadCurvePointForTime(position);
-    [path addArcWithCenter:CGPointMake(new_point.x, fmaxf(0.0, new_point.y - 44.0)) radius:10.0 startAngle:0 endAngle:M_PI_2 clockwise:TRUE];
-    [path addArcWithCenter:CGPointMake(new_point.x, fmaxf(0.0, new_point.y - 44.0)) radius:10.0 startAngle:M_PI_2 endAngle:M_PI_4 clockwise:TRUE];
+    
+    [path addArcWithCenter:CGPointMake(new_point.x, fmaxf(0.0, new_point.y)) radius:10.0 startAngle:0 endAngle:M_PI_2 clockwise:TRUE];
+    [path addArcWithCenter:CGPointMake(new_point.x, fmaxf(0.0, new_point.y)) radius:10.0 startAngle:M_PI_2 endAngle:M_PI_4 clockwise:TRUE];
     [(CAShapeLayer *)layer setLineWidth:1.0];
     [(CAShapeLayer *)layer setStrokeColor:color.CGColor];
     CGMutablePathRef path_ref = path.CGPath;
