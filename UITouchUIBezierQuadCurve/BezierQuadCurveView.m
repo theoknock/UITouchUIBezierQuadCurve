@@ -156,7 +156,7 @@ static NSValue * (^(^bezier_quad_curve_control_points)(CGPoint, CGPoint, CGPoint
 
 - (void)controlPointPreferences { //}:(NSString *)fileName p:(const BezierQuadCurveControlPoints *)p structureDataAsDictionary:(NSDictionary *)structureDataAsDictionary {
     __autoreleasing NSError * error = nil;
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES); //creates paths so that you can pull the app's path from it
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsDirectory = [paths objectAtIndex:0];
     NSString * fileName = [NSString stringWithFormat:@"%@/filename.dat", documentsDirectory];
     NSData *structureDataGet = [[NSData alloc] initWithContentsOfFile:fileName options:NSDataReadingUncached error:&error];
@@ -171,7 +171,6 @@ static NSValue * (^(^bezier_quad_curve_control_points)(CGPoint, CGPoint, CGPoint
     start_point = pget.start_point;
     end_point = pget.end_point;
     intermediate_point = pget.intermediate_point;
-    printf("\nstart_point.x == %f\n", pget.start_point.x);
 }
 
 - (void)setControlPointPreferences {
@@ -180,12 +179,14 @@ static NSValue * (^(^bezier_quad_curve_control_points)(CGPoint, CGPoint, CGPoint
     NSDictionary *structureDataAsDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
                                                [NSMutableData dataWithBytes:&p length:sizeof(p)], @"PreferredControlPointsKey",
                                                nil];
-    NSData *structureData = [NSKeyedArchiver archivedDataWithRootObject:structureDataAsDictionary];
+    NSError * error = nil;
+    NSData *structureData = [NSKeyedArchiver archivedDataWithRootObject:structureDataAsDictionary requiringSecureCoding:FALSE error:&error];
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES); //creates paths so that you can pull the app's path from it
     NSString *documentsDirectory = [paths objectAtIndex:0];
     NSString * fileName = [NSString stringWithFormat:@"%@/filename.dat", documentsDirectory];
-    BOOL fileDidWrite = [structureData writeToFile:fileName atomically:YES];
-    printf("%s%s", (fileDidWrite) ? "The control-points preferences were saved to " : "The control-points preferences were not saved.", [fileName UTF8String]);
+    ([structureData writeToFile:fileName atomically:YES]) ?
+    ^{ printf("The control-points preferences were saved to %s", [fileName UTF8String]); }() :
+    ^{ printf("The control-points preferences were not saved: %s", [[error description] UTF8String]); }();
 }
 
 - (void)awakeFromNib {
