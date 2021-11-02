@@ -133,13 +133,11 @@ static NSValue * (^(^bezier_quad_curve_control_points)(CGPoint, CGPoint, CGPoint
     [bezier_quad_curve moveToPoint:[self start_point]];
     [bezier_quad_curve addQuadCurveToPoint:[self end_point] controlPoint:[self intermediate_point]];
     [(CAShapeLayer *)self.layer setLineWidth:1.0];
-    [(CAShapeLayer *)self.layer setStrokeColor:[UIColor blueColor].CGColor];
+    [(CAShapeLayer *)self.layer setStrokeColor:[UIColor systemBlueColor].CGColor];
     [(CAShapeLayer *)self.layer setFillColor:[UIColor clearColor].CGColor];
     [(CAShapeLayer *)self.layer setBackgroundColor:[UIColor clearColor].CGColor];
     [(CAShapeLayer *)self.layer setPath:bezier_quad_curve.CGPath];
 }
-
-// To-Do: Draw handles for all three control points in blue; change to red when selected
 
 - (CGPoint)start_point {
     start_point =        CGPointMake(start_point.x,        fminf(fmaxf(0.0, start_point.y),          CGRectGetMaxY(self.bounds)));
@@ -194,23 +192,12 @@ static NSValue * (^(^bezier_quad_curve_control_points)(CGPoint, CGPoint, CGPoint
     [super awakeFromNib];
     [self controlPointPreferences];
     
-    //    [self setBounds:CGRectMake(CGRectGetMinX(self.frame), CGRectGetMinY(self.frame), CGRectGetMaxX(self.frame) - CGRectGetMinX(self.frame), CGRectGetMaxY(self.frame) - CGRectGetMinY(self.frame))];
-    //    [self setFrame:CGRectMake(CGRectGetMinX(self.frame), CGRectGetMinY(self.frame), CGRectGetMaxX(self.frame) - CGRectGetMinX(self.frame), CGRectGetMaxY(self.frame) - CGRectGetMinY(self.frame))];
-    
-    //    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-//    NSValue * control_points = nil; //[defaults objectForKey:@"BezierQuadCurveControlPointsUserDefaultKey"];
-//    BezierQuadCurveControlPoints p;
-//    [control_points getValue:&p];
-//    start_point = (!control_points) ? CGPointMake(CGRectGetMidX(self.frame), CGRectGetMinY(self.frame)) : p.start_point;
-//    end_point = (!control_points) ? CGPointMake(CGRectGetMaxX(self.frame), CGRectGetMidY(self.frame)) : p.end_point;
-//    intermediate_point = (!control_points) ? CGPointMake(CGRectGetMidX(self.frame), CGRectGetMidY(self.frame)) : p.intermediate_point;
-//    
     buttons = [[NSMutableArray alloc] initWithCapacity:CaptureDeviceConfigurationControlPropertyImageKeys.count];
     [CaptureDeviceConfigurationControlPropertyImageValues[0] enumerateObjectsUsingBlock:^(NSString * _Nonnull imageName, NSUInteger idx, BOOL * _Nonnull stop) {
         [buttons addObject:^ {
             UIButton * button;
             [button = [UIButton new] setTag:idx];
-            
+            [button setEnabled:FALSE];
             [button setBackgroundColor:[UIColor clearColor]];
             [button setShowsTouchWhenHighlighted:TRUE];
 
@@ -314,9 +301,6 @@ static NSValue * (^(^bezier_quad_curve_control_points)(CGPoint, CGPoint, CGPoint
     [self displayBezierQuadCurve];
     [self displayButtons];
     [self setControlPointPreferences];
-//    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-//    [defaults setObject:bezier_quad_curve_control_points(start_point, end_point, intermediate_point, NSMakeRange(0.0, 1.0)) forKey:@"BezierQuadCurveControlPointsUserDefaultKey"];
-//    [defaults synchronize];
 }
 
 - (void)point:(CGPoint)point layer:(CAShapeLayer *)layer color:(UIColor *)color position:(CGFloat)position {
