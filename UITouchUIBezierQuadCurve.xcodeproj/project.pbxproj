@@ -14,6 +14,8 @@
 		B9F829932730291700970E88 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B9F829922730291700970E88 /* Assets.xcassets */; };
 		B9F829962730291700970E88 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B9F829942730291700970E88 /* LaunchScreen.storyboard */; };
 		B9F829992730291700970E88 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B9F829982730291700970E88 /* main.m */; };
+		B9F829A12730295600970E88 /* BezierQuadCurveView.m in Sources */ = {isa = PBXBuildFile; fileRef = B9F829A02730295600970E88 /* BezierQuadCurveView.m */; };
+		B9F829A42730310700970E88 /* ChangeState.m in Sources */ = {isa = PBXBuildFile; fileRef = B9F829A32730310700970E88 /* ChangeState.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +31,10 @@
 		B9F829952730291700970E88 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		B9F829972730291700970E88 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B9F829982730291700970E88 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		B9F8299F2730295600970E88 /* BezierQuadCurveView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BezierQuadCurveView.h; sourceTree = "<group>"; };
+		B9F829A02730295600970E88 /* BezierQuadCurveView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BezierQuadCurveView.m; sourceTree = "<group>"; wrapsLines = 0; };
+		B9F829A2273030ED00970E88 /* ChangeState.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChangeState.h; sourceTree = "<group>"; };
+		B9F829A32730310700970E88 /* ChangeState.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ChangeState.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +74,10 @@
 				B9F8298C2730291500970E88 /* ViewController.h */,
 				B9F8298D2730291500970E88 /* ViewController.m */,
 				B9F8298F2730291500970E88 /* Main.storyboard */,
+				B9F829A2273030ED00970E88 /* ChangeState.h */,
+				B9F829A32730310700970E88 /* ChangeState.m */,
+				B9F8299F2730295600970E88 /* BezierQuadCurveView.h */,
+				B9F829A02730295600970E88 /* BezierQuadCurveView.m */,
 				B9F829922730291700970E88 /* Assets.xcassets */,
 				B9F829942730291700970E88 /* LaunchScreen.storyboard */,
 				B9F829972730291700970E88 /* Info.plist */,
@@ -147,9 +157,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				B9F8298E2730291500970E88 /* ViewController.m in Sources */,
+				B9F829A12730295600970E88 /* BezierQuadCurveView.m in Sources */,
 				B9F829882730291400970E88 /* AppDelegate.m in Sources */,
 				B9F829992730291700970E88 /* main.m in Sources */,
 				B9F8298B2730291500970E88 /* SceneDelegate.m in Sources */,
+				B9F829A42730310700970E88 /* ChangeState.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

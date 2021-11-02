@@ -6,6 +6,7 @@
 //
 
 #import "ViewController.h"
+#include "ChangeState.h"
 
 @interface ViewController ()
 
@@ -18,5 +19,8 @@
     // Do any additional setup after loading the view.
 }
 
+- (IBAction)changeState:(UITapGestureRecognizer *)sender {
+    
+}
 
 @end
