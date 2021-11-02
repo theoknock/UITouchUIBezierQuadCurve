@@ -96,6 +96,34 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
 - (void)awakeFromNib {
     [super awakeFromNib];
     
+    
+    start_point = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMinY(self.frame));
+    end_point = CGPointMake(CGRectGetMaxX(self.frame), CGRectGetMidY(self.frame));
+    intermediate_point = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMidY(self.frame));
+    
+    buttons = [[NSMutableArray alloc] initWithCapacity:CaptureDeviceConfigurationControlPropertyImageKeys.count];
+    [CaptureDeviceConfigurationControlPropertyImageValues[0] enumerateObjectsUsingBlock:^(NSString * _Nonnull imageName, NSUInteger idx, BOOL * _Nonnull stop) {
+        [buttons addObject:^ {
+            UIButton * button;
+            [button = [UIButton new] setTag:idx];
+
+            [button setBackgroundColor:[UIColor clearColor]];
+            [button setShowsTouchWhenHighlighted:TRUE];
+
+            [button setImage:[UIImage systemImageNamed:CaptureDeviceConfigurationControlPropertyImageValues[0][idx] withConfiguration:CaptureDeviceConfigurationControlPropertySymbolImageConfiguration(CaptureDeviceConfigurationControlStateDeselected)] forState:UIControlStateNormal];
+            [button setImage:[UIImage systemImageNamed:CaptureDeviceConfigurationControlPropertyImageValues[1][idx] withConfiguration:CaptureDeviceConfigurationControlPropertySymbolImageConfiguration(CaptureDeviceConfigurationControlStateSelected)] forState:UIControlStateSelected];
+
+            [button sizeToFit];
+            CGSize button_size = [button intrinsicContentSize];
+            [button setFrame:CGRectMake(0.0, 0.0,
+                                        button_size.width, button_size.height)];
+            [self addSubview:button];
+            
+
+            return button;
+            }()];
+    }];
+    
     start_control_point_path_layer = [CAShapeLayer new];
     end_control_point_path_layer = [CAShapeLayer new];
     intermediate_control_point_path_layer = [CAShapeLayer new];
@@ -117,9 +145,7 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
     
     change = 0;
     
-    start_point = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMinY(self.frame));
-    end_point = CGPointMake(CGRectGetMaxX(self.frame), CGRectGetMidY(self.frame));
-    intermediate_point = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMidY(self.frame));
+    
     
     [self point:start_point layer:start_control_point_path_layer color:[UIColor systemYellowColor]];
     
@@ -134,37 +160,7 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
     [(CAShapeLayer *)self.layer setStrokeColor:[UIColor blueColor].CGColor];
     [(CAShapeLayer *)self.layer setPath:bezier_quad_curve.CGPath];
     
-    buttons = [[NSMutableArray alloc] initWithCapacity:CaptureDeviceConfigurationControlPropertyImageKeys.count];
-    [CaptureDeviceConfigurationControlPropertyImageValues[0] enumerateObjectsUsingBlock:^(NSString * _Nonnull imageName, NSUInteger idx, BOOL * _Nonnull stop) {
-        [buttons addObject:^ {
-            UIButton * button;
-            [button = [UIButton new] setTag:idx];
-
-            [button setBackgroundColor:[UIColor clearColor]];
-            [button setShowsTouchWhenHighlighted:TRUE];
-
-            [button setImage:[UIImage systemImageNamed:CaptureDeviceConfigurationControlPropertyImageValues[0][idx] withConfiguration:CaptureDeviceConfigurationControlPropertySymbolImageConfiguration(CaptureDeviceConfigurationControlStateDeselected)] forState:UIControlStateNormal];
-            [button setImage:[UIImage systemImageNamed:CaptureDeviceConfigurationControlPropertyImageValues[1][idx] withConfiguration:CaptureDeviceConfigurationControlPropertySymbolImageConfiguration(CaptureDeviceConfigurationControlStateSelected)] forState:UIControlStateSelected];
-
-            [button sizeToFit];
-            CGSize button_size = [button intrinsicContentSize];
-            [button setFrame:CGRectMake(0.0, 0.0,
-                                        button_size.width, button_size.height)];
-            [self addSubview:button];
-            CGFloat t = (CGFloat)(fabs((end_point.x - start_point.x) / 5.0) * idx);
-            printf("t == %f\n", t);
-            [button setCenter:^ CGPoint (CGFloat time) {
-                CGFloat t = time / 100.0; //(time - start_point.x) / (end_point.x - start_point.x);
-                CGFloat x = (1 - t) * (1 - t) * start_point.x + 2 * (1 - t) * t * intermediate_point.x + t * t * end_point.x;
-                CGFloat y = (1 - t) * (1 - t) * start_point.y + 2 * (1 - t) * t * intermediate_point.y + t * t * end_point.y;
-                printf("(x, y) == %s\n", [NSStringFromCGPoint(CGPointMake(x, y)) UTF8String]);
-                
-                return CGPointMake(x, y);
-            }(t)];
-
-            return button;
-            }()];
-    }];
+    
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
@@ -214,14 +210,15 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
     [buttons enumerateObjectsUsingBlock:^(UIButton * _Nonnull button, NSUInteger idx, BOOL * _Nonnull stop) {
         CGFloat t = (CGFloat)(fabs((end_point.x - start_point.x) / 5.0) * idx);
         printf("t == %f\n", t);
-        [button setCenter:^ CGPoint (CGFloat time) {
-            CGFloat t = time / 100.0; //(time - start_point.x) / (end_point.x - start_point.x);
+        [button setCenter:^ CGPoint (CGFloat time, NSUInteger divisor) {
+            CGFloat t = (divisor == 0) ? 0.125 : (divisor == 1) ? 0.3125 : (divisor == 2) ? 0.5 : (divisor == 3) ? 0.6875 : 0.875; //(divisor)/5; //(time - start_point.x) / (end_point.x - start_point.x);
             CGFloat x = (1 - t) * (1 - t) * start_point.x + 2 * (1 - t) * t * intermediate_point.x + t * t * end_point.x;
             CGFloat y = (1 - t) * (1 - t) * start_point.y + 2 * (1 - t) * t * intermediate_point.y + t * t * end_point.y;
-            printf("(x, y) == %s\n", [NSStringFromCGPoint(CGPointMake(x, y)) UTF8String]);
+            printf("idx == %lu\tt == %f\t(x, y) == %s\n", idx, t, [NSStringFromCGPoint(CGPointMake(x, y)) UTF8String]);
             
             return CGPointMake(x, y);
-        }(t)];
+        }(t, idx)];
+
     }];
 }
 
