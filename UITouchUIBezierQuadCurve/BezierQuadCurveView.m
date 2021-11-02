@@ -8,6 +8,72 @@
 #import "BezierQuadCurveView.h"
 #import "ChangeState.h"
 
+static NSArray<NSString *> * const CaptureDeviceConfigurationControlPropertyImageKeys = @[@"CaptureDeviceConfigurationControlPropertyTorchLevel",
+                                                                                          @"CaptureDeviceConfigurationControlPropertyLensPosition",
+                                                                                          @"CaptureDeviceConfigurationControlPropertyExposureDuration",
+                                                                                          @"CaptureDeviceConfigurationControlPropertyISO",
+                                                                                          @"CaptureDeviceConfigurationControlPropertyZoomFactor"];
+
+
+static NSArray<NSArray<NSString *> *> * const CaptureDeviceConfigurationControlPropertyImageValues = @[@[@"bolt.circle",
+                                                                                                         @"viewfinder.circle",
+                                                                                                         @"timer",
+                                                                                                         @"camera.aperture",
+                                                                                                         @"magnifyingglass.circle"],@[@"bolt.circle.fill",
+                                                                                                                                      @"viewfinder.circle.fill",
+                                                                                                                                      @"timer",
+                                                                                                                                      @"camera.aperture",
+                                                                                                                                      @"magnifyingglass.circle.fill"]];
+
+typedef enum : NSUInteger {
+    CaptureDeviceConfigurationControlPropertyTorchLevel,
+    CaptureDeviceConfigurationControlPropertyLensPosition,
+    CaptureDeviceConfigurationControlPropertyExposureDuration,
+    CaptureDeviceConfigurationControlPropertyISO,
+    CaptureDeviceConfigurationControlPropertyZoomFactor
+} CaptureDeviceConfigurationControlProperty;
+
+typedef enum : NSUInteger {
+    CaptureDeviceConfigurationControlStateDeselected,
+    CaptureDeviceConfigurationControlStateSelected
+} CaptureDeviceConfigurationControlState;
+
+static UIImageSymbolConfiguration * (^CaptureDeviceConfigurationControlPropertySymbolImageConfiguration)(CaptureDeviceConfigurationControlState) = ^ UIImageSymbolConfiguration * (CaptureDeviceConfigurationControlState state) {
+    switch (state) {
+        case CaptureDeviceConfigurationControlStateDeselected: {
+            UIImageSymbolConfiguration * symbol_palette_colors = [UIImageSymbolConfiguration configurationWithHierarchicalColor:[UIColor systemBlueColor]];
+            UIImageSymbolConfiguration * symbol_font_weight    = [UIImageSymbolConfiguration configurationWithWeight:UIImageSymbolWeightThin];
+            UIImageSymbolConfiguration * symbol_font_size      = [UIImageSymbolConfiguration configurationWithPointSize:42.0 weight:UIImageSymbolWeightUltraLight];
+            UIImageSymbolConfiguration * symbol_configuration  = [symbol_font_size configurationByApplyingConfiguration:[symbol_palette_colors configurationByApplyingConfiguration:symbol_font_weight]];
+            return symbol_configuration;
+        }
+            break;
+            
+        case CaptureDeviceConfigurationControlStateSelected: {
+            UIImageSymbolConfiguration * symbol_palette_colors_selected = [UIImageSymbolConfiguration configurationWithHierarchicalColor:[UIColor systemYellowColor]];// configurationWithPaletteColors:@[[UIColor systemYellowColor], [UIColor clearColor], [UIColor systemYellowColor]]];
+            UIImageSymbolConfiguration * symbol_font_weight_selected    = [UIImageSymbolConfiguration configurationWithWeight:UIImageSymbolWeightRegular];
+            UIImageSymbolConfiguration * symbol_font_size_selected      = [UIImageSymbolConfiguration configurationWithPointSize:42.0 weight:UIImageSymbolWeightThin];
+            UIImageSymbolConfiguration * symbol_configuration_selected  = [symbol_font_size_selected configurationByApplyingConfiguration:[symbol_palette_colors_selected configurationByApplyingConfiguration:symbol_font_weight_selected]];
+            
+            return symbol_configuration_selected;
+        }
+            break;
+        default:
+            return nil;
+            break;
+    }
+};
+static NSString * (^CaptureDeviceConfigurationControlPropertySymbol)(CaptureDeviceConfigurationControlProperty, CaptureDeviceConfigurationControlState) = ^ NSString * (CaptureDeviceConfigurationControlProperty property, CaptureDeviceConfigurationControlState state) {
+    return CaptureDeviceConfigurationControlPropertyImageValues[state][property];
+};
+
+static NSString * (^CaptureDeviceConfigurationControlPropertyString)(CaptureDeviceConfigurationControlProperty) = ^ NSString * (CaptureDeviceConfigurationControlProperty property) {
+    return CaptureDeviceConfigurationControlPropertyImageKeys[property];
+};
+
+static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(CaptureDeviceConfigurationControlProperty, CaptureDeviceConfigurationControlState) = ^ UIImage * (CaptureDeviceConfigurationControlProperty property, CaptureDeviceConfigurationControlState state) {
+    return [UIImage systemImageNamed:CaptureDeviceConfigurationControlPropertySymbol(property, state) withConfiguration:CaptureDeviceConfigurationControlPropertySymbolImageConfiguration(state)];
+};
 @implementation BezierQuadCurveView {
     
     CGPoint start_point;
@@ -107,6 +173,43 @@
         
         [self point:intermediate_point layer:intermediate_control_point_path_layer color:(CGRectContainsPoint(CGPathGetBoundingBox(intermediate_control_point_path_layer.path), circle_location)) ? [UIColor systemRedColor] : [UIColor systemYellowColor]];
     }
+}
+
+- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    // To-Do: Lay out buttons along bezier quad curve
+//    static UIButton * (^(^CaptureDeviceConfigurationPropertyButtons)(NSArray<NSArray<NSString *> *> * const, CAShapeLayer *))(CaptureDeviceConfigurationControlProperty) = ^ (NSArray<NSArray<NSString *> *> * const captureDeviceConfigurationControlPropertyImageNames, CAShapeLayer * shape_layer) {
+//        CGFloat button_boundary_length = (CGRectGetMaxX(UIScreen.mainScreen.bounds) - CGRectGetMinX(UIScreen.mainScreen.bounds)) / ((CGFloat)captureDeviceConfigurationControlPropertyImageNames[0].count - 1.0);
+        __block NSMutableArray<UIButton *> * buttons = [[NSMutableArray alloc] initWithCapacity:CaptureDeviceConfigurationControlPropertyImageKeys.count];
+        [CaptureDeviceConfigurationControlPropertyImageValues[0] enumerateObjectsUsingBlock:^(NSString * _Nonnull imageName, NSUInteger idx, BOOL * _Nonnull stop) {
+            [buttons addObject:^ {
+                UIButton * button;
+                [button = [UIButton new] setTag:idx];
+
+                [button setBackgroundColor:[UIColor clearColor]];
+                [button setShowsTouchWhenHighlighted:TRUE];
+
+                [button setImage:[UIImage systemImageNamed:CaptureDeviceConfigurationControlPropertyImageValues[0][idx] withConfiguration:CaptureDeviceConfigurationControlPropertySymbolImageConfiguration(CaptureDeviceConfigurationControlStateDeselected)] forState:UIControlStateNormal];
+                [button setImage:[UIImage systemImageNamed:CaptureDeviceConfigurationControlPropertyImageValues[1][idx] withConfiguration:CaptureDeviceConfigurationControlPropertySymbolImageConfiguration(CaptureDeviceConfigurationControlStateSelected)] forState:UIControlStateSelected];
+
+                [button sizeToFit];
+                CGSize button_size = [button intrinsicContentSize];
+                [button setFrame:CGRectMake(0.0, 0.0,
+                                            button_size.width, button_size.height)];
+                [self addSubview:button];
+                CGFloat t = (CGFloat)(fabs((end_point.x - start_point.x) / 5.0) * idx);
+                printf("t == %f\n", t);
+                [button setCenter:^ CGPoint (CGFloat time) {
+                    CGFloat t = time / 100.0; //(time - start_point.x) / (end_point.x - start_point.x);
+                    CGFloat x = (1 - t) * (1 - t) * start_point.x + 2 * (1 - t) * t * intermediate_point.x + t * t * end_point.x;
+                    CGFloat y = (1 - t) * (1 - t) * start_point.y + 2 * (1 - t) * t * intermediate_point.y + t * t * end_point.y;
+                    printf("(x, y) == %s\n", [NSStringFromCGPoint(CGPointMake(x, y)) UTF8String]);
+                    
+                    return CGPointMake(x, y);
+                }(t)];
+
+                return button;
+                }()];
+        }];
 }
 
 - (void)point:(CGPoint)point layer:(CAShapeLayer *)layer color:(UIColor *)color {
