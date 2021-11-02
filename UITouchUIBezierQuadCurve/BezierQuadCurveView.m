@@ -85,6 +85,8 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
     CAShapeLayer * intermediate_control_point_path_layer;
     
     __block NSMutableArray<UIButton *> * buttons;
+    
+    UIView * handles_view;
 }
 
 + (Class)layerClass {
@@ -125,12 +127,15 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
             }()];
     }];
     
+    handles_view = [[UIView alloc] initWithFrame:self.bounds];
+    [self addSubview:handles_view];
+    
     start_control_point_path_layer = [CAShapeLayer new];
     end_control_point_path_layer = [CAShapeLayer new];
     intermediate_control_point_path_layer = [CAShapeLayer new];
-    [self.layer addSublayer:start_control_point_path_layer];
-    [self.layer addSublayer:end_control_point_path_layer];
-    [self.layer addSublayer:intermediate_control_point_path_layer];
+    [handles_view.layer addSublayer:start_control_point_path_layer];
+    [handles_view.layer addSublayer:end_control_point_path_layer];
+    [handles_view.layer addSublayer:intermediate_control_point_path_layer];
     [start_control_point_path_layer setBackgroundColor:[UIColor clearColor].CGColor];
     [end_control_point_path_layer setBackgroundColor:[UIColor clearColor].CGColor];
     [intermediate_control_point_path_layer setBackgroundColor:[UIColor clearColor].CGColor];
@@ -143,6 +148,8 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
     [end_control_point_path_layer setBorderColor:[UIColor systemYellowColor].CGColor];
     [intermediate_control_point_path_layer setBorderColor:[UIColor systemYellowColor].CGColor];
     
+    
+    // To-Do: Create a transform that positions the view above the buttons (z-index-wise)
     
     change = 0;
     
