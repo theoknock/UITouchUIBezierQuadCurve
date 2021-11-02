@@ -11,7 +11,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface BezierQuadCurveView : UIView <UIGestureRecognizerDelegate>
 
-@property (strong, nonatomic) UIGestureRecognizer *tapGestureRecognizer;
+@property (strong, nonatomic) UIView * handles_view;
 
 @end
 

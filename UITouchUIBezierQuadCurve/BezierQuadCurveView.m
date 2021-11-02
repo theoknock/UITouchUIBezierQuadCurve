@@ -114,8 +114,6 @@ static NSValue * (^(^bezier_quad_curve_control_points)(CGPoint, CGPoint, CGPoint
     CGPoint (^BezierQuadCurvePointForTime)(CGFloat);
     
     __block NSMutableArray<UIButton *> * buttons;
-    
-    UIView * handles_view;
 }
 
 + (Class)layerClass {
@@ -216,29 +214,7 @@ static NSValue * (^(^bezier_quad_curve_control_points)(CGPoint, CGPoint, CGPoint
             }()];
     }];
     
-    handles_view = [[UIView alloc] initWithFrame:self.bounds];
-    [self addSubview:handles_view];
-    
-    start_control_point_path_layer = [CAShapeLayer new];
-    end_control_point_path_layer = [CAShapeLayer new];
-    intermediate_control_point_path_layer = [CAShapeLayer new];
-    [handles_view.layer addSublayer:start_control_point_path_layer];
-    [handles_view.layer addSublayer:end_control_point_path_layer];
-    [handles_view.layer addSublayer:intermediate_control_point_path_layer];
-    [start_control_point_path_layer setBackgroundColor:[UIColor clearColor].CGColor];
-    [end_control_point_path_layer setBackgroundColor:[UIColor clearColor].CGColor];
-    [intermediate_control_point_path_layer setBackgroundColor:[UIColor clearColor].CGColor];
-    [start_control_point_path_layer setFillColor:[UIColor clearColor].CGColor];
-    [end_control_point_path_layer setFillColor:[UIColor clearColor].CGColor];
-    [intermediate_control_point_path_layer setFillColor:[UIColor clearColor].CGColor];
-    
-    [start_control_point_path_layer setBorderWidth:1.0];
-    [end_control_point_path_layer setBorderWidth:1.0];
-    [intermediate_control_point_path_layer setBorderWidth:1.0];
-    
-    [start_control_point_path_layer setBorderColor:[UIColor systemYellowColor].CGColor];
-    [end_control_point_path_layer setBorderColor:[UIColor systemYellowColor].CGColor];
-    [intermediate_control_point_path_layer setBorderColor:[UIColor systemYellowColor].CGColor];
+    [self addSubview:[self handles_view]];
     
     BezierQuadCurvePointForTime = ^ {
         return ^ CGPoint (CGFloat time) {
@@ -253,6 +229,32 @@ static NSValue * (^(^bezier_quad_curve_control_points)(CGPoint, CGPoint, CGPoint
     [self displayBezierQuadCurve];
     [self displayButtons];
     // To-Do: Display positioning guides; add a snap-to feature
+}
+
+- (UIView *)handles_view {
+    UIView * hv = self->_handles_view;
+    if (!hv) {
+        hv = [[UIView alloc] initWithFrame:self.bounds];
+        start_control_point_path_layer = [CAShapeLayer new];
+        end_control_point_path_layer = [CAShapeLayer new];
+        intermediate_control_point_path_layer = [CAShapeLayer new];
+        [hv.layer addSublayer:start_control_point_path_layer];
+        [hv.layer addSublayer:end_control_point_path_layer];
+        [hv.layer addSublayer:intermediate_control_point_path_layer];
+        [self configureHandleLayer:start_control_point_path_layer];
+        [self configureHandleLayer:end_control_point_path_layer];
+        [self configureHandleLayer:intermediate_control_point_path_layer];
+        self->_handles_view = hv;
+    }
+    
+    return hv;
+}
+
+- (void)configureHandleLayer:(CAShapeLayer *)layer {
+    [layer setBackgroundColor:[UIColor clearColor].CGColor];
+    [layer setFillColor:[UIColor clearColor].CGColor];
+    [layer setBorderWidth:1.0];
+    [layer setBorderColor:[UIColor systemYellowColor].CGColor];
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
