@@ -74,6 +74,7 @@ static NSString * (^CaptureDeviceConfigurationControlPropertyString)(CaptureDevi
 static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(CaptureDeviceConfigurationControlProperty, CaptureDeviceConfigurationControlState) = ^ UIImage * (CaptureDeviceConfigurationControlProperty property, CaptureDeviceConfigurationControlState state) {
     return [UIImage systemImageNamed:CaptureDeviceConfigurationControlPropertySymbol(property, state) withConfiguration:CaptureDeviceConfigurationControlPropertySymbolImageConfiguration(state)];
 };
+
 @implementation BezierQuadCurveView {
     
     CGPoint start_point;
@@ -83,6 +84,8 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
     CAShapeLayer * start_control_point_path_layer;
     CAShapeLayer * end_control_point_path_layer;
     CAShapeLayer * intermediate_control_point_path_layer;
+    
+    CGPoint (^BezierQuadCurvePointForTime)(CGFloat);
     
     __block NSMutableArray<UIButton *> * buttons;
     
@@ -94,15 +97,15 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
 }
 
 - (void)displayBezierQuadCurve {
-    [self point:start_point layer:start_control_point_path_layer color:[UIColor systemYellowColor] position:0.0];
+    [self point:[self start_point] layer:start_control_point_path_layer color:[UIColor systemYellowColor] position:0.0];
     
-    [self point:end_point layer:end_control_point_path_layer color:[UIColor systemYellowColor] position: 1.0];
+    [self point:[self end_point] layer:end_control_point_path_layer color:[UIColor systemYellowColor] position: 1.0];
     
-    [self point:intermediate_point layer:intermediate_control_point_path_layer color:[UIColor systemYellowColor] position:0.5];
+    [self point:[self intermediate_point] layer:intermediate_control_point_path_layer color:[UIColor systemYellowColor] position:0.5];
     
     UIBezierPath * bezier_quad_curve = [UIBezierPath bezierPath];
-    [bezier_quad_curve moveToPoint:start_point];
-    [bezier_quad_curve addQuadCurveToPoint:end_point controlPoint:intermediate_point];
+    [bezier_quad_curve moveToPoint:[self start_point]];
+    [bezier_quad_curve addQuadCurveToPoint:[self end_point] controlPoint:[self intermediate_point]];
     [(CAShapeLayer *)self.layer setLineWidth:1.0];
     [(CAShapeLayer *)self.layer setStrokeColor:[UIColor blueColor].CGColor];
     [(CAShapeLayer *)self.layer setFillColor:[UIColor clearColor].CGColor];
@@ -112,11 +115,26 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
 
 // To-Do: Draw handles for all three control points in blue; change to red when selected
 
+- (CGPoint)start_point {
+    start_point =        CGPointMake(start_point.x,        fminf(fmaxf(0.0, start_point.y),          CGRectGetMaxY(self.bounds)));
+    return start_point;
+}
+
+- (CGPoint)end_point {
+    end_point =          CGPointMake(end_point.x,          fminf(fmaxf(0.0, end_point.y),          CGRectGetMaxY(self.bounds)));
+    return end_point;
+}
+
+- (CGPoint)intermediate_point {
+    intermediate_point = CGPointMake(intermediate_point.x, fminf(fmaxf(0.0, intermediate_point.y), CGRectGetMaxY(self.bounds)));
+    return intermediate_point;
+}
+
 - (void)awakeFromNib {
     [super awakeFromNib];
     
-    [self setBounds:CGRectMake(CGRectGetMinX(self.frame), CGRectGetMinY(self.frame), CGRectGetMaxX(self.frame) - CGRectGetMinX(self.frame), CGRectGetMaxY(self.frame) - CGRectGetMinY(self.frame))];
-    [self setFrame:CGRectMake(CGRectGetMinX(self.frame), CGRectGetMinY(self.frame), CGRectGetMaxX(self.frame) - CGRectGetMinX(self.frame), CGRectGetMaxY(self.frame) - CGRectGetMinY(self.frame))];
+//    [self setBounds:CGRectMake(CGRectGetMinX(self.frame), CGRectGetMinY(self.frame), CGRectGetMaxX(self.frame) - CGRectGetMinX(self.frame), CGRectGetMaxY(self.frame) - CGRectGetMinY(self.frame))];
+//    [self setFrame:CGRectMake(CGRectGetMinX(self.frame), CGRectGetMinY(self.frame), CGRectGetMaxX(self.frame) - CGRectGetMinX(self.frame), CGRectGetMaxY(self.frame) - CGRectGetMinY(self.frame))];
     
     start_point = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMinY(self.frame));
     end_point = CGPointMake(CGRectGetMaxX(self.frame), CGRectGetMidY(self.frame));
@@ -169,12 +187,19 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
     [end_control_point_path_layer setBorderColor:[UIColor systemYellowColor].CGColor];
     [intermediate_control_point_path_layer setBorderColor:[UIColor systemYellowColor].CGColor];
     
-    
-    // To-Do: Create a transform that positions the view above the buttons (z-index-wise)
+    BezierQuadCurvePointForTime = ^ {
+        return ^ CGPoint (CGFloat time) {
+            CGFloat x = (1 - time) * (1 - time) * [self start_point].x + 2 * (1 - time) * time * [self intermediate_point].x + time * time * [self end_point].x;
+            CGFloat y = (1 - time) * (1 - time) * [self start_point].y + 2 * (1 - time) * time * [self intermediate_point].y + time * time * [self end_point].y;
+            
+            return CGPointMake(x, fminf(fmaxf(0.0, y), CGRectGetMaxY(self.bounds)));
+        };
+    }();
     
     change = 0;
     [self displayBezierQuadCurve];
     [self displayButtons];
+    // To-Do: Display positioning guides; add a snap-to feature
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
@@ -202,48 +227,37 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
     
     if ((CGRectContainsPoint(CGPathGetBoundingBox(start_control_point_path_layer.path), circle_location)) || (CGRectContainsPoint(CGPathGetBoundingBox(end_control_point_path_layer.path), circle_location)) || (CGRectContainsPoint(CGPathGetBoundingBox(intermediate_control_point_path_layer.path), circle_location))) {
         
-        [self point:start_point layer:start_control_point_path_layer color:(CGRectContainsPoint(CGPathGetBoundingBox(start_control_point_path_layer.path), circle_location)) ? [UIColor systemRedColor] : [UIColor systemYellowColor] position:0.0];
+        [self point:[self start_point] layer:start_control_point_path_layer color:(CGRectContainsPoint(CGPathGetBoundingBox(start_control_point_path_layer.path), circle_location)) ? [UIColor systemRedColor] : [UIColor systemYellowColor] position:0.0];
         
-        [self point:end_point layer:end_control_point_path_layer color:(CGRectContainsPoint(CGPathGetBoundingBox(end_control_point_path_layer.path), circle_location)) ? [UIColor systemRedColor] : [UIColor systemYellowColor] position:1.0];
+        [self point:[self end_point] layer:end_control_point_path_layer color:(CGRectContainsPoint(CGPathGetBoundingBox(end_control_point_path_layer.path), circle_location)) ? [UIColor systemRedColor] : [UIColor systemYellowColor] position:1.0];
         
-        [self point:intermediate_point layer:intermediate_control_point_path_layer color:(CGRectContainsPoint(CGPathGetBoundingBox(intermediate_control_point_path_layer.path), circle_location)) ? [UIColor systemRedColor] : [UIColor systemYellowColor] position:0.5];
+        [self point:[self intermediate_point] layer:intermediate_control_point_path_layer color:(CGRectContainsPoint(CGPathGetBoundingBox(intermediate_control_point_path_layer.path), circle_location)) ? [UIColor systemRedColor] : [UIColor systemYellowColor] position:0.5];
     }
 }
 
+
+
 - (void)displayButtons {
     [buttons enumerateObjectsUsingBlock:^(UIButton * _Nonnull button, NSUInteger idx, BOOL * _Nonnull stop) {
-        CGFloat t = (CGFloat)(fabs((end_point.x - start_point.x) / 5.0) * idx);
-        
-        [button setCenter:^ CGPoint (CGFloat time, NSUInteger divisor) {
-            CGFloat t = (divisor == 0) ? 0.125 : (divisor == 1) ? 0.3125 : (divisor == 2) ? 0.5 : (divisor == 3) ? 0.6875 : 0.875; //(divisor)/5; //(time - start_point.x) / (end_point.x - start_point.x);
-            CGFloat x = (1 - t) * (1 - t) * start_point.x + 2 * (1 - t) * t * intermediate_point.x + t * t * end_point.x;
-            CGFloat y = (1 - t) * (1 - t) * start_point.y + 2 * (1 - t) * t * intermediate_point.y + t * t * end_point.y;
-            
-            return CGPointMake(x, y);
-        }(t, idx)];
-        
+        [button setCenter:BezierQuadCurvePointForTime((idx == 0) ? 0.125 : (idx == 1) ? 0.3125 : (idx == 2) ? 0.5 : (idx == 3) ? 0.6875 : 0.875)];
     }];
 }
 
 - (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [self displayBezierQuadCurve];
     [self displayButtons];
 }
 
 - (void)point:(CGPoint)point layer:(CAShapeLayer *)layer color:(UIColor *)color position:(CGFloat)position {
     [layer setPath:nil];
     UIBezierPath * path = [UIBezierPath bezierPath];
-    CGPoint new_point = ^ CGPoint (CGFloat time) {
-        CGFloat x = (1 - time) * (1 - time) * start_point.x + 2 * (1 - time) * time * intermediate_point.x + time * time * end_point.x;
-        CGFloat y = (1 - time) * (1 - time) * start_point.y + 2 * (1 - time) * time * intermediate_point.y + time * time * end_point.y;
-        
-        return CGPointMake(x, fmaxf(0.0, y - 44.0));
-    }(position);
-    [path addArcWithCenter:new_point /*CGPointMake(point.x, point.y)*/ radius:10.0 startAngle:0 endAngle:M_PI_2 clockwise:TRUE];
-    [path addArcWithCenter:new_point /*CGPointMake(point.x, point.y)*/ radius:10.0 startAngle:M_PI_2 endAngle:M_PI_4 clockwise:TRUE];
+    CGPoint new_point = BezierQuadCurvePointForTime(position);
+    [path addArcWithCenter:CGPointMake(new_point.x, fmaxf(0.0, new_point.y - 44.0)) radius:10.0 startAngle:0 endAngle:M_PI_2 clockwise:TRUE];
+    [path addArcWithCenter:CGPointMake(new_point.x, fmaxf(0.0, new_point.y - 44.0)) radius:10.0 startAngle:M_PI_2 endAngle:M_PI_4 clockwise:TRUE];
     [(CAShapeLayer *)layer setLineWidth:1.0];
     [(CAShapeLayer *)layer setStrokeColor:color.CGColor];
     CGMutablePathRef path_ref = path.CGPath;
-    const CGRect rects[] = { CGPathGetBoundingBox(path_ref), CGPathGetPathBoundingBox(path_ref) };
+    const CGRect rects[] = { CGPathGetBoundingBox(path_ref), CGPathGetBoundingBox(path_ref) };
     NSUInteger count = sizeof(rects) / sizeof(CGRect);
     CGPathAddRects(path_ref, NULL, rects, count);
     [(CAShapeLayer *)layer setPath:path.CGPath];
