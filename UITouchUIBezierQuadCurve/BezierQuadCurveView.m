@@ -10,23 +10,13 @@
 
 @implementation BezierQuadCurveView {
     
-    CGPoint start;
-    CGPoint end;
-    CGPoint intermediate;
+    CGPoint start_point;
+    CGPoint end_point;
+    CGPoint intermediate_point;
     
-    CGRect start_rect;
-    CGRect end_rect;
-    CGRect intermediate_rect;
-    
-    //    UIBezierPath * quad_curve;
-    
-    //    UIBezierPath * startcontrol_point_path;
-    //    UIBezierPath * endcontrol_point_path;
-    //    UIBezierPath * intermediatecontrol_point_path;
-    
-    CAShapeLayer * startcontrol_point_path_layer;
-    CAShapeLayer * endcontrol_point_path_layer;
-    CAShapeLayer * intermediatecontrol_point_path_layer;
+    CAShapeLayer * start_control_point_path_layer;
+    CAShapeLayer * end_control_point_path_layer;
+    CAShapeLayer * intermediate_control_point_path_layer;
 }
 
 + (Class)layerClass {
@@ -38,40 +28,40 @@
 - (void)awakeFromNib {
     [super awakeFromNib];
     
-    startcontrol_point_path_layer = [CAShapeLayer new];
-    endcontrol_point_path_layer = [CAShapeLayer new];
-    intermediatecontrol_point_path_layer = [CAShapeLayer new];
-    [self.layer addSublayer:startcontrol_point_path_layer];
-    [self.layer addSublayer:endcontrol_point_path_layer];
-    [self.layer addSublayer:intermediatecontrol_point_path_layer];
-    [startcontrol_point_path_layer setBackgroundColor:[UIColor clearColor].CGColor];
-    [endcontrol_point_path_layer setBackgroundColor:[UIColor clearColor].CGColor];
-    [intermediatecontrol_point_path_layer setBackgroundColor:[UIColor clearColor].CGColor];
+    start_control_point_path_layer = [CAShapeLayer new];
+    end_control_point_path_layer = [CAShapeLayer new];
+    intermediate_control_point_path_layer = [CAShapeLayer new];
+    [self.layer addSublayer:start_control_point_path_layer];
+    [self.layer addSublayer:end_control_point_path_layer];
+    [self.layer addSublayer:intermediate_control_point_path_layer];
+    [start_control_point_path_layer setBackgroundColor:[UIColor clearColor].CGColor];
+    [end_control_point_path_layer setBackgroundColor:[UIColor clearColor].CGColor];
+    [intermediate_control_point_path_layer setBackgroundColor:[UIColor clearColor].CGColor];
     
-    [startcontrol_point_path_layer setBorderWidth:1.0];
-    [endcontrol_point_path_layer setBorderWidth:1.0];
-    [intermediatecontrol_point_path_layer setBorderWidth:1.0];
+    [start_control_point_path_layer setBorderWidth:1.0];
+    [end_control_point_path_layer setBorderWidth:1.0];
+    [intermediate_control_point_path_layer setBorderWidth:1.0];
     
-    [startcontrol_point_path_layer setBorderColor:[UIColor systemYellowColor].CGColor];
-    [endcontrol_point_path_layer setBorderColor:[UIColor systemYellowColor].CGColor];
-    [intermediatecontrol_point_path_layer setBorderColor:[UIColor systemYellowColor].CGColor];
+    [start_control_point_path_layer setBorderColor:[UIColor systemYellowColor].CGColor];
+    [end_control_point_path_layer setBorderColor:[UIColor systemYellowColor].CGColor];
+    [intermediate_control_point_path_layer setBorderColor:[UIColor systemYellowColor].CGColor];
     
     
     change = 0;
     
-    start = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMinY(self.frame));
-    end = CGPointMake(CGRectGetMaxX(self.frame), CGRectGetMidY(self.frame));
-    intermediate = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMidY(self.frame));
+    start_point = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMinY(self.frame));
+    end_point = CGPointMake(CGRectGetMaxX(self.frame), CGRectGetMidY(self.frame));
+    intermediate_point = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMidY(self.frame));
     
-    [self point:start layer:startcontrol_point_path_layer color:[UIColor systemYellowColor]];
+    [self point:start_point layer:start_control_point_path_layer color:[UIColor systemYellowColor]];
     
-    [self point:end layer:endcontrol_point_path_layer color:[UIColor systemYellowColor]];
+    [self point:end_point layer:end_control_point_path_layer color:[UIColor systemYellowColor]];
     
-    [self point:intermediate layer:intermediatecontrol_point_path_layer color:[UIColor systemYellowColor]];
+    [self point:intermediate_point layer:intermediate_control_point_path_layer color:[UIColor systemYellowColor]];
     
     UIBezierPath * bezier_quad_curve = [UIBezierPath bezierPath];
-    [bezier_quad_curve moveToPoint:start];
-    [bezier_quad_curve addQuadCurveToPoint:end controlPoint:intermediate];
+    [bezier_quad_curve moveToPoint:start_point];
+    [bezier_quad_curve addQuadCurveToPoint:end_point controlPoint:intermediate_point];
     [(CAShapeLayer *)self.layer setLineWidth:1.0];
     [(CAShapeLayer *)self.layer setStrokeColor:[UIColor blueColor].CGColor];
     [(CAShapeLayer *)self.layer setPath:bezier_quad_curve.CGPath];
@@ -83,20 +73,20 @@
     CGPoint circle_location = CGPointMake([touch locationInView:touch.view].x, [touch locationInView:touch.view].y);
 
     (change == 0) ?
-    ^{ start = circle_location; printf("start\n"); }() :
+    ^{ start_point = circle_location; }() :
     (change == 1) ?
-    ^{ end = circle_location; printf("end\n"); }() :
-    ^{ intermediate = circle_location; printf("intermediate\n"); }();
+    ^{ end_point = circle_location; }() :
+    ^{ intermediate_point = circle_location; }();
     
-    [self point:start layer:startcontrol_point_path_layer color:(CGRectContainsPoint(CGPathGetBoundingBox(startcontrol_point_path_layer.path), circle_location)) ? [UIColor systemRedColor] : [UIColor systemYellowColor]];
+    [self point:start_point layer:start_control_point_path_layer color:(CGRectContainsPoint(CGPathGetBoundingBox(start_control_point_path_layer.path), circle_location)) ? [UIColor systemRedColor] : [UIColor systemYellowColor]];
     
-    [self point:end layer:endcontrol_point_path_layer color:(CGRectContainsPoint(CGPathGetBoundingBox(endcontrol_point_path_layer.path), circle_location)) ? [UIColor systemRedColor] : [UIColor systemYellowColor]];
+    [self point:end_point layer:end_control_point_path_layer color:(CGRectContainsPoint(CGPathGetBoundingBox(end_control_point_path_layer.path), circle_location)) ? [UIColor systemRedColor] : [UIColor systemYellowColor]];
     
-    [self point:intermediate layer:intermediatecontrol_point_path_layer color:(CGRectContainsPoint(CGPathGetBoundingBox(intermediatecontrol_point_path_layer.path), circle_location)) ? [UIColor systemRedColor] : [UIColor systemYellowColor]];
+    [self point:intermediate_point layer:intermediate_control_point_path_layer color:(CGRectContainsPoint(CGPathGetBoundingBox(intermediate_control_point_path_layer.path), circle_location)) ? [UIColor systemRedColor] : [UIColor systemYellowColor]];
     
     UIBezierPath * bezier_quad_curve = [UIBezierPath bezierPath];
-    [bezier_quad_curve moveToPoint:start];
-    [bezier_quad_curve addQuadCurveToPoint:end controlPoint:intermediate];
+    [bezier_quad_curve moveToPoint:start_point];
+    [bezier_quad_curve addQuadCurveToPoint:end_point controlPoint:intermediate_point];
     [(CAShapeLayer *)self.layer setLineWidth:1.0];
     [(CAShapeLayer *)self.layer setStrokeColor:[UIColor blueColor].CGColor];
     [(CAShapeLayer *)self.layer setPath:bezier_quad_curve.CGPath];
@@ -106,16 +96,16 @@
     UITouch * touch = (UITouch *)touches.anyObject;
     CGPoint circle_location = CGPointMake([touch locationInView:touch.view].x, [touch locationInView:touch.view].y);
     
-    change = (CGRectContainsPoint(CGPathGetBoundingBox(startcontrol_point_path_layer.path), circle_location)) ? 0 :
-    (CGRectContainsPoint(CGPathGetBoundingBox(endcontrol_point_path_layer.path), circle_location)) ? 1 : 2;
+    change = (CGRectContainsPoint(CGPathGetBoundingBox(start_control_point_path_layer.path), circle_location)) ? 0 :
+    (CGRectContainsPoint(CGPathGetBoundingBox(end_control_point_path_layer.path), circle_location)) ? 1 : 2;
     
-    if ((CGRectContainsPoint(CGPathGetBoundingBox(startcontrol_point_path_layer.path), circle_location)) || (CGRectContainsPoint(CGPathGetBoundingBox(endcontrol_point_path_layer.path), circle_location)) || (CGRectContainsPoint(CGPathGetBoundingBox(intermediatecontrol_point_path_layer.path), circle_location))) {
+    if ((CGRectContainsPoint(CGPathGetBoundingBox(start_control_point_path_layer.path), circle_location)) || (CGRectContainsPoint(CGPathGetBoundingBox(end_control_point_path_layer.path), circle_location)) || (CGRectContainsPoint(CGPathGetBoundingBox(intermediate_control_point_path_layer.path), circle_location))) {
         
-        [self point:start layer:startcontrol_point_path_layer color:(CGRectContainsPoint(CGPathGetBoundingBox(startcontrol_point_path_layer.path), circle_location)) ? [UIColor systemRedColor] : [UIColor systemYellowColor]];
+        [self point:start_point layer:start_control_point_path_layer color:(CGRectContainsPoint(CGPathGetBoundingBox(start_control_point_path_layer.path), circle_location)) ? [UIColor systemRedColor] : [UIColor systemYellowColor]];
         
-        [self point:end layer:endcontrol_point_path_layer color:(CGRectContainsPoint(CGPathGetBoundingBox(endcontrol_point_path_layer.path), circle_location)) ? [UIColor systemRedColor] : [UIColor systemYellowColor]];
+        [self point:end_point layer:end_control_point_path_layer color:(CGRectContainsPoint(CGPathGetBoundingBox(end_control_point_path_layer.path), circle_location)) ? [UIColor systemRedColor] : [UIColor systemYellowColor]];
         
-        [self point:intermediate layer:intermediatecontrol_point_path_layer color:(CGRectContainsPoint(CGPathGetBoundingBox(intermediatecontrol_point_path_layer.path), circle_location)) ? [UIColor systemRedColor] : [UIColor systemYellowColor]];
+        [self point:intermediate_point layer:intermediate_control_point_path_layer color:(CGRectContainsPoint(CGPathGetBoundingBox(intermediate_control_point_path_layer.path), circle_location)) ? [UIColor systemRedColor] : [UIColor systemYellowColor]];
     }
 }
 
