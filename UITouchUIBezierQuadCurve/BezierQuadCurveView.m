@@ -96,6 +96,7 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
 - (void)awakeFromNib {
     [super awakeFromNib];
     
+    [self setBounds:CGRectMake(CGRectGetMinX(self.frame), CGRectGetMinY(self.frame), CGRectGetWidth(self.frame), CGRectGetHeight(self.frame) - 40.0)];
     
     start_point = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMinY(self.frame));
     end_point = CGPointMake(CGRectGetMaxX(self.frame), CGRectGetMidY(self.frame));
@@ -166,7 +167,8 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
     UITouch * touch = (UITouch *)touches.anyObject;
-    CGPoint circle_location = CGPointMake(fmaxf(CGRectGetMinX(touch.view.frame), fminf(CGRectGetMaxX(touch.view.frame), [touch locationInView:touch.view].x)), [touch locationInView:touch.view].y);
+    CGPoint circle_location = CGPointMake(fmaxf(CGRectGetMinX(touch.view.frame), fminf(CGRectGetMaxX(touch.view.frame), [touch locationInView:touch.view].x)),
+                                          fminf(CGRectGetMaxY(touch.view.frame), [touch locationInView:touch.view].y));
     
     (change == 0) ?
     ^{ start_point = circle_location; }() :
