@@ -219,7 +219,7 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
     // To-Do: Lay out buttons along bezier quad curve
     [buttons enumerateObjectsUsingBlock:^(UIButton * _Nonnull button, NSUInteger idx, BOOL * _Nonnull stop) {
         CGFloat t = (CGFloat)(fabs((end_point.x - start_point.x) / 5.0) * idx);
-        printf("t == %f\n", t);
+        printf("t == %f\n", time);
         [button setCenter:^ CGPoint (CGFloat time, NSUInteger divisor) {
             CGFloat t = (divisor == 0) ? 0.125 : (divisor == 1) ? 0.3125 : (divisor == 2) ? 0.5 : (divisor == 3) ? 0.6875 : 0.875; //(divisor)/5; //(time - start_point.x) / (end_point.x - start_point.x);
             CGFloat x = (1 - t) * (1 - t) * start_point.x + 2 * (1 - t) * t * intermediate_point.x + t * t * end_point.x;
@@ -236,11 +236,10 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
     [layer setPath:nil];
     UIBezierPath * path = [UIBezierPath bezierPath];
     CGPoint new_point = ^ CGPoint (CGFloat time) {
-        CGFloat t = time; //(divisor == 0) ? 0.125 : (divisor == 1) ? 0.3125 : (divisor == 2) ? 0.5 : (divisor == 3) ? 0.6875 : 0.875; //(divisor)/5; //(time - start_point.x) / (end_point.x - start_point.x);
-        CGFloat x = (1 - t) * (1 - t) * start_point.x + 2 * (1 - t) * t * intermediate_point.x + t * t * end_point.x;
-        CGFloat y = (1 - t) * (1 - t) * start_point.y + 2 * (1 - t) * t * intermediate_point.y + t * t * end_point.y;
+        CGFloat x = (1 - time) * (1 - time) * start_point.x + 2 * (1 - time) * time * intermediate_point.x + time * time * end_point.x;
+        CGFloat y = (1 - time) * (1 - time) * start_point.y + 2 * (1 - time) * time * intermediate_point.y + time * time * end_point.y;
         
-        return CGPointMake(x, y);
+        return CGPointMake(x, y - 22.0);
     }(position);
     [path addArcWithCenter:new_point /*CGPointMake(point.x, point.y)*/ radius:20.0 startAngle:0 endAngle:M_PI_2 clockwise:TRUE];
     [path addArcWithCenter:new_point /*CGPointMake(point.x, point.y)*/ radius:20.0 startAngle:M_PI_2 endAngle:M_PI_4 clockwise:TRUE];
