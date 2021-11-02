@@ -239,7 +239,7 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
         CGFloat x = (1 - time) * (1 - time) * start_point.x + 2 * (1 - time) * time * intermediate_point.x + time * time * end_point.x;
         CGFloat y = (1 - time) * (1 - time) * start_point.y + 2 * (1 - time) * time * intermediate_point.y + time * time * end_point.y;
         
-        return CGPointMake(x, y - 22.0);
+        return CGPointMake(x, fmaxf(0.0, y - 40.0));
     }(position);
     [path addArcWithCenter:new_point /*CGPointMake(point.x, point.y)*/ radius:20.0 startAngle:0 endAngle:M_PI_2 clockwise:TRUE];
     [path addArcWithCenter:new_point /*CGPointMake(point.x, point.y)*/ radius:20.0 startAngle:M_PI_2 endAngle:M_PI_4 clockwise:TRUE];
