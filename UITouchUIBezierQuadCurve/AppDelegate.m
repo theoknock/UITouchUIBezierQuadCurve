@@ -7,6 +7,9 @@
 
 #import "AppDelegate.h"
 
+NSString * BezierQuadCurveControlPointsUserDefaultKey = @"BezierQuadCurveControlPointsUserDefaultKey";
+
+
 @interface AppDelegate ()
 
 @end
@@ -15,7 +18,9 @@
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    // Override point for customization after application launch.
+    // Register the preference defaults early.
+       
+     
     return YES;
 }
 

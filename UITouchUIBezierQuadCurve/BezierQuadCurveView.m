@@ -75,6 +75,32 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
     return [UIImage systemImageNamed:CaptureDeviceConfigurationControlPropertySymbol(property, state) withConfiguration:CaptureDeviceConfigurationControlPropertySymbolImageConfiguration(state)];
 };
 
+
+struct __attribute__((objc_boxable)) BezierQuadCurveControlPoints
+{
+    CGPoint start_point;
+    CGPoint end_point;
+    CGPoint intermediate_point;
+    NSRange time_range;
+};
+typedef struct BezierQuadCurveControlPoints BezierQuadCurveControlPoints;
+
+static NSValue * (^(^bezier_quad_curve_control_points)(CGPoint, CGPoint, CGPoint, NSRange))(void) = ^ (CGPoint start_point, CGPoint end_point, CGPoint intermediate_point, NSRange time_range) {
+    BezierQuadCurveControlPoints p =
+    {
+        .start_point        = start_point,
+         .end_point          = end_point,
+         .intermediate_point = intermediate_point,
+         .time_range         = time_range
+    };
+    
+    NSValue * points = @(p);
+    
+    return ^ NSValue * (void) {
+        return points;
+    };
+};
+
 @implementation BezierQuadCurveView {
     
     CGPoint start_point;
@@ -130,22 +156,61 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
     return intermediate_point;
 }
 
+- (void)controlPointPreferences { //}:(NSString *)fileName p:(const BezierQuadCurveControlPoints *)p structureDataAsDictionary:(NSDictionary *)structureDataAsDictionary {
+    __autoreleasing NSError * error = nil;
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES); //creates paths so that you can pull the app's path from it
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    NSString * fileName = [NSString stringWithFormat:@"%@/filename.dat", documentsDirectory];
+    NSData *structureDataGet = [[NSData alloc] initWithContentsOfFile:fileName options:NSDataReadingUncached error:&error];
+    if ( error ) {
+        NSLog(@"%@", error);
+    }
+    // retrieving dictionary from NSData
+    NSDictionary *structureDataAsDictionaryGet = [NSKeyedUnarchiver unarchiveObjectWithData:structureDataGet];
+    
+    BezierQuadCurveControlPoints pget;
+    [[structureDataAsDictionaryGet objectForKey:@"PreferredControlPointsKey"] getBytes:&pget length:sizeof(pget)];
+    start_point = pget.start_point;
+    end_point = pget.end_point;
+    intermediate_point = pget.intermediate_point;
+    printf("\nstart_point.x == %f\n", pget.start_point.x);
+}
+
+- (void)setControlPointPreferences {
+    // Setting
+    BezierQuadCurveControlPoints p = {.start_point = [self start_point], .end_point = [self end_point], .intermediate_point = [self intermediate_point], .time_range = NSMakeRange(0, 1)};
+    NSDictionary *structureDataAsDictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+                                               [NSMutableData dataWithBytes:&p length:sizeof(p)], @"PreferredControlPointsKey",
+                                               nil];
+    NSData *structureData = [NSKeyedArchiver archivedDataWithRootObject:structureDataAsDictionary];
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES); //creates paths so that you can pull the app's path from it
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    NSString * fileName = [NSString stringWithFormat:@"%@/filename.dat", documentsDirectory];
+    BOOL fileDidWrite = [structureData writeToFile:fileName atomically:YES];
+    printf("%s%s", (fileDidWrite) ? "The control-points preferences were saved to " : "The control-points preferences were not saved.", [fileName UTF8String]);
+}
+
 - (void)awakeFromNib {
     [super awakeFromNib];
+    [self controlPointPreferences];
     
-//    [self setBounds:CGRectMake(CGRectGetMinX(self.frame), CGRectGetMinY(self.frame), CGRectGetMaxX(self.frame) - CGRectGetMinX(self.frame), CGRectGetMaxY(self.frame) - CGRectGetMinY(self.frame))];
-//    [self setFrame:CGRectMake(CGRectGetMinX(self.frame), CGRectGetMinY(self.frame), CGRectGetMaxX(self.frame) - CGRectGetMinX(self.frame), CGRectGetMaxY(self.frame) - CGRectGetMinY(self.frame))];
+    //    [self setBounds:CGRectMake(CGRectGetMinX(self.frame), CGRectGetMinY(self.frame), CGRectGetMaxX(self.frame) - CGRectGetMinX(self.frame), CGRectGetMaxY(self.frame) - CGRectGetMinY(self.frame))];
+    //    [self setFrame:CGRectMake(CGRectGetMinX(self.frame), CGRectGetMinY(self.frame), CGRectGetMaxX(self.frame) - CGRectGetMinX(self.frame), CGRectGetMaxY(self.frame) - CGRectGetMinY(self.frame))];
     
-    start_point = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMinY(self.frame));
-    end_point = CGPointMake(CGRectGetMaxX(self.frame), CGRectGetMidY(self.frame));
-    intermediate_point = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMidY(self.frame));
-    
+    //    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+//    NSValue * control_points = nil; //[defaults objectForKey:@"BezierQuadCurveControlPointsUserDefaultKey"];
+//    BezierQuadCurveControlPoints p;
+//    [control_points getValue:&p];
+//    start_point = (!control_points) ? CGPointMake(CGRectGetMidX(self.frame), CGRectGetMinY(self.frame)) : p.start_point;
+//    end_point = (!control_points) ? CGPointMake(CGRectGetMaxX(self.frame), CGRectGetMidY(self.frame)) : p.end_point;
+//    intermediate_point = (!control_points) ? CGPointMake(CGRectGetMidX(self.frame), CGRectGetMidY(self.frame)) : p.intermediate_point;
+//    
     buttons = [[NSMutableArray alloc] initWithCapacity:CaptureDeviceConfigurationControlPropertyImageKeys.count];
     [CaptureDeviceConfigurationControlPropertyImageValues[0] enumerateObjectsUsingBlock:^(NSString * _Nonnull imageName, NSUInteger idx, BOOL * _Nonnull stop) {
         [buttons addObject:^ {
             UIButton * button;
             [button = [UIButton new] setTag:idx];
-
+            
             [button setBackgroundColor:[UIColor clearColor]];
             [button setShowsTouchWhenHighlighted:TRUE];
 
@@ -243,9 +308,15 @@ static UIImage * (^CaptureDeviceConfigurationControlPropertySymbolImage)(Capture
     }];
 }
 
+
+
 - (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
     [self displayBezierQuadCurve];
     [self displayButtons];
+    [self setControlPointPreferences];
+//    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+//    [defaults setObject:bezier_quad_curve_control_points(start_point, end_point, intermediate_point, NSMakeRange(0.0, 1.0)) forKey:@"BezierQuadCurveControlPointsUserDefaultKey"];
+//    [defaults synchronize];
 }
 
 - (void)point:(CGPoint)point layer:(CAShapeLayer *)layer color:(UIColor *)color position:(CGFloat)position {
